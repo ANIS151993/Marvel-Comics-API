@@ -7,6 +7,7 @@ Thumbs.db
 *.Zone.Identifier
 *:Zone.Identifier
 marvel-api/api-data.js
+marvel-generator/api-data.js
 characters-server/
 mongodb/
 package-lock.json
