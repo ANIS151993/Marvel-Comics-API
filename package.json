@@ -1,0 +1,22 @@
+{
+  "name": "marvel-card-generator",
+  "version": "1.0.0",
+  "description": "Random Marvel Card Generator using Marvel API",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "marvel",
+    "api",
+    "javascript",
+    "marvelapi"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

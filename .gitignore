@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+*.env
+.DS_Store
+Thumbs.db
+*.Zone.Identifier
+*:Zone.Identifier
+marvel-api/api-data.js
+characters-server/
+mongodb/
+package-lock.json
+marvel-json/package-lock.json
