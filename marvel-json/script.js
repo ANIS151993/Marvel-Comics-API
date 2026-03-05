@@ -121,6 +121,44 @@ function getAlignmentClass(alignment) {
   return "alignment-neutral";
 }
 
+function buildInlineFallbackSvg(name) {
+  const initials = name
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("") || "?";
+
+  const safeName = name
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1a1d2b"/>
+          <stop offset="100%" stop-color="#0f1119"/>
+        </linearGradient>
+      </defs>
+      <rect width="640" height="520" fill="url(#bg)"/>
+      <circle cx="520" cy="90" r="140" fill="#e01a38" opacity="0.25"/>
+      <circle cx="120" cy="460" r="160" fill="#f43f5e" opacity="0.2"/>
+      <text x="50%" y="46%" text-anchor="middle" fill="#f8fafc" font-size="132" font-family="Arial, sans-serif" font-weight="700">${initials}</text>
+      <text x="50%" y="62%" text-anchor="middle" fill="#cbd5e1" font-size="28" font-family="Arial, sans-serif">${safeName}</text>
+      <text x="50%" y="72%" text-anchor="middle" fill="#94a3b8" font-size="18" font-family="Arial, sans-serif">Image unavailable</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function setInlineFallback(imgEl, name) {
+  imgEl.onerror = null;
+  imgEl.src = buildInlineFallbackSvg(name);
+}
+
 function showLoading() {
   showContainer.innerHTML = `
     <div class="loading-card">
@@ -209,7 +247,7 @@ function showCard(character) {
         <img id="char-img"
              src="${character.image}"
              alt="${character.name}"
-             onerror="this.src='https://via.placeholder.com/480x400/13131f/e01a38?text=No+Image'" />
+             onerror="setInlineFallback(this, '${safeName}')" />
         <div class="card-image-id">ID: ${character.id}</div>
 
         <!-- Download button over image -->

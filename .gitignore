@@ -12,3 +12,6 @@ characters-server/
 mongodb/
 package-lock.json
 marvel-json/package-lock.json
+.claude/
+.tools/
+state/
