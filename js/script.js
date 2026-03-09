@@ -162,6 +162,75 @@ function setInlineFallback(imgEl, name) {
   imgEl.src = buildInlineFallbackSvg(name);
 }
 
+// ── Online image search (Wikipedia API) ──────────────────
+
+const IMG_CACHE_PREFIX = "marvel_img_";
+
+async function fetchImageOnline(name) {
+  const cacheKey = IMG_CACHE_PREFIX + name.toLowerCase();
+
+  // Return cached result (even if it's "" meaning not found)
+  const cached = localStorage.getItem(cacheKey);
+  if (cached !== null) return cached;
+
+  // Try search queries: exact name first, then "Marvel Comics {name}"
+  const queries = [
+    `${name} (comics)`,
+    `${name} Marvel Comics`,
+    name,
+  ];
+
+  for (const q of queries) {
+    try {
+      const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q)}&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=500&format=json&origin=*`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const pages = data?.query?.pages;
+      if (pages) {
+        const page = Object.values(pages)[0];
+        const thumb = page?.thumbnail?.source;
+        if (thumb) {
+          localStorage.setItem(cacheKey, thumb);
+          return thumb;
+        }
+      }
+    } catch (_) { /* network error, try next query */ }
+  }
+
+  // Not found — cache empty string to avoid re-fetching
+  localStorage.setItem(cacheKey, "");
+  return "";
+}
+
+// Called when character has no image — shows spinner then fetches online
+async function loadImageForCard(character) {
+  const wrapper = document.querySelector(".card-image-wrapper");
+  const imgEl   = document.getElementById("char-img");
+  if (!wrapper || !imgEl) return;
+
+  // Show spinner while searching
+  imgEl.style.opacity = "0.15";
+  const spinner = document.createElement("div");
+  spinner.className = "img-searching";
+  spinner.innerHTML = `<div class="img-spinner"></div><p>Searching image…</p>`;
+  wrapper.appendChild(spinner);
+
+  const found = await fetchImageOnline(character.name);
+
+  // Remove spinner
+  spinner.remove();
+  imgEl.style.opacity = "";
+
+  if (found) {
+    imgEl.onerror = () => setInlineFallback(imgEl, character.name);
+    imgEl.src = found;
+    // Persist to in-memory character so re-opens are instant
+    character.image = found;
+  } else {
+    setInlineFallback(imgEl, character.name);
+  }
+}
+
 function showLoading() {
   showContainer.innerHTML = `
     <div class="loading-card">
@@ -252,7 +321,7 @@ function showCard(character) {
       <!-- Image (full width, full picture) -->
       <div class="card-image-wrapper">
         <img id="char-img"
-             src="${character.image}"
+             src="${character.image || buildInlineFallbackSvg(character.name)}"
              alt="${character.name}"
              onerror="setInlineFallback(this, '${safeName}')" />
         <div class="card-image-id">ID: ${character.id}</div>
@@ -289,7 +358,7 @@ function showCard(character) {
           </div>
         </div>
 
-        <button class="download-btn" onclick="downloadImage('${character.image}', '${safeName}')" title="Download Image">
+        <button class="download-btn" onclick="downloadImage(document.getElementById('char-img').src, '${safeName}')" title="Download Image">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="7 10 12 15 17 10"/>
@@ -299,6 +368,11 @@ function showCard(character) {
         </button>
       </div>
     </div>`;
+
+  // If no image stored, search online
+  if (!character.image) {
+    loadImageForCard(character);
+  }
 }
 
 // ── Submit ────────────────────────────────────────────────

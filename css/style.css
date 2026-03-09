@@ -365,6 +365,36 @@ body {
   white-space: nowrap;
 }
 
+/* ── Online image search spinner ── */
+.img-searching {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  background: rgba(10,10,20,0.55);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.img-searching p {
+  font-size: 0.7em;
+  color: #aaa;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.img-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(224,26,56,0.2);
+  border-top-color: #e01a38;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 /* ── Card body (info + download) ── */
 .card-body {
   padding: 0.6em 1.2em 1.1em;
