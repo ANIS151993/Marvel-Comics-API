@@ -5,17 +5,17 @@ let listContainer = document.getElementById("autocomplete-list");
 
 let characters = [];
 let currentCharacter = null;
+let debounceTimer = null;
 
-// Load local JSON data and auto-show list
+const BROWSE_LIMIT = 80; // max items shown when browsing (no search term)
+
+// Load local JSON data
 fetch("marvel_characters.json")
   .then((response) => response.json())
   .then((data) => {
-    // Sort alphabetically
     characters = data.sort((a, b) => a.name.localeCompare(b.name));
     const random = characters[Math.floor(Math.random() * characters.length)];
     input.value = random.name;
-    // Auto-show full list on page load
-    buildDropdownItems(characters, "");
   });
 
 function displayWords(value) {
@@ -27,56 +27,60 @@ function removeElements() {
   listContainer.innerHTML = "";
 }
 
-// Build dropdown items
+// Build dropdown using DocumentFragment for fast batch insert
 function buildDropdownItems(list, searchTerm) {
   removeElements();
-  list.forEach((character) => {
-    let name = character.name;
-    let div = document.createElement("div");
-    div.classList.add("autocomplete-items");
-    div.setAttribute("onclick", `displayWords('${name.replace(/'/g, "\\'")}')`);
+  const fragment = document.createDocumentFragment();
+  let lastLetter = "";
+
+  const slice = searchTerm ? list : list.slice(0, BROWSE_LIMIT);
+
+  slice.forEach((character) => {
+    const name = character.name;
+    const letter = name[0].toUpperCase();
+
+    // Alphabet header (browse mode only)
+    if (!searchTerm && letter !== lastLetter) {
+      const header = document.createElement("div");
+      header.className = "alpha-header";
+      header.textContent = letter;
+      fragment.appendChild(header);
+      lastLetter = letter;
+    }
+
+    const div = document.createElement("div");
+    div.className = "autocomplete-items";
+    div.setAttribute("data-letter", letter);
+    div.addEventListener("click", () => displayWords(name));
 
     let word = name;
     if (searchTerm) {
       const idx = name.toLowerCase().indexOf(searchTerm.toLowerCase());
       if (idx !== -1) {
-        word = name.substr(0, idx) +
-               "<b>" + name.substr(idx, searchTerm.length) + "</b>" +
-               name.substr(idx + searchTerm.length);
+        word = name.substring(0, idx) +
+               "<b>" + name.substring(idx, idx + searchTerm.length) + "</b>" +
+               name.substring(idx + searchTerm.length);
       }
     }
 
-    // Show first letter as section label if alphabetical listing
-    const letter = name[0].toUpperCase();
-    div.setAttribute("data-letter", letter);
     div.innerHTML = `<p class="item">${word}</p>`;
-    listContainer.appendChild(div);
+    fragment.appendChild(div);
   });
 
-  // Add letter group headers for full alphabetical list
-  if (!searchTerm) {
-    addAlphabetHeaders();
+  // Footer hint when browsing full list
+  if (!searchTerm && list.length > BROWSE_LIMIT) {
+    const footer = document.createElement("div");
+    footer.className = "dropdown-footer";
+    footer.textContent = `Type to search all ${list.length} characters`;
+    fragment.appendChild(footer);
   }
+
+  listContainer.appendChild(fragment);
 }
 
-function addAlphabetHeaders() {
-  const items = listContainer.querySelectorAll(".autocomplete-items");
-  let lastLetter = "";
-  items.forEach((item) => {
-    const letter = item.getAttribute("data-letter");
-    if (letter !== lastLetter) {
-      const header = document.createElement("div");
-      header.classList.add("alpha-header");
-      header.textContent = letter;
-      listContainer.insertBefore(header, item);
-      lastLetter = letter;
-    }
-  });
-}
-
-// Show ALL characters alphabetically on focus / click
+// Show browse list on focus / click
 input.addEventListener("focus", () => {
-  if (input.value.trim().length === 0 || characters.some(c => c.name.toLowerCase() === input.value.toLowerCase())) {
+  if (listContainer.innerHTML === "") {
     buildDropdownItems(characters, "");
   }
 });
@@ -87,25 +91,24 @@ input.addEventListener("click", () => {
   }
 });
 
-// Filter while typing
+// Debounced filter while typing
 input.addEventListener("keyup", (e) => {
   if (e.key === "Enter") return;
-  const searchTerm = input.value.trim();
-
-  if (searchTerm.length === 0) {
-    buildDropdownItems(characters, "");
-    return;
-  }
-
-  const matches = characters.filter((c) =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (matches.length > 0) {
-    buildDropdownItems(matches, searchTerm);
-  } else {
-    removeElements();
-  }
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    const searchTerm = input.value.trim();
+    if (searchTerm.length === 0) {
+      buildDropdownItems(characters, "");
+      return;
+    }
+    const lower = searchTerm.toLowerCase();
+    const matches = characters.filter((c) => c.name.toLowerCase().includes(lower));
+    if (matches.length > 0) {
+      buildDropdownItems(matches, searchTerm);
+    } else {
+      removeElements();
+    }
+  }, 120);
 });
 
 // Close dropdown on outside click

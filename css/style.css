@@ -239,6 +239,16 @@ body {
 
 .autocomplete-items b { color: #e01a38; font-weight: 700; }
 
+.dropdown-footer {
+  padding: 0.6em 1.2em;
+  font-size: 0.72em;
+  color: #555;
+  text-align: center;
+  letter-spacing: 0.5px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  font-style: italic;
+}
+
 /* ── Display Container ── */
 .display-container {
   margin-top: 1.6em;
