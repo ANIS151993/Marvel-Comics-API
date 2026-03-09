@@ -248,6 +248,9 @@ body {
 
 /* ── Character Card ── */
 .card-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
   background: #13131f;
   border-radius: 20px;
   overflow: hidden;
@@ -255,6 +258,12 @@ body {
   box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(224,26,56,0.08);
   animation: cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   transform-origin: top center;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.card-container:hover {
+  border-color: rgba(224,26,56,0.35);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.8), 0 0 0 1px rgba(224,26,56,0.18);
 }
 
 @keyframes cardReveal {
@@ -264,75 +273,71 @@ body {
 
 /* Image section */
 .card-image-wrapper {
+  width: 138px;
+  flex-shrink: 0;
   position: relative;
   overflow: hidden;
   background: #0d0d1a;
+  border-right: 1px solid #2a2a4a;
 }
 
 .card-image-wrapper img {
   width: 100%;
-  height: 220px;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
   object-position: top center;
   display: block;
   transition: transform 0.5s ease;
 }
 
 .card-container:hover .card-image-wrapper img {
-  transform: scale(1.03);
-}
-
-.card-image-overlay {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 40%;
-  background: linear-gradient(to top, #13131f 0%, transparent 100%);
-  pointer-events: none;
+  transform: scale(1.04);
 }
 
 .card-image-id {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(224, 26, 56, 0.92);
   color: #fff;
-  font-size: 0.7em;
+  font-size: 0.62em;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 20px;
   letter-spacing: 1px;
   backdrop-filter: blur(6px);
   box-shadow: 0 2px 12px rgba(224,26,56,0.55);
+  white-space: nowrap;
 }
 
 /* ── Download Button ── */
 .download-btn {
-  position: absolute;
-  bottom: 14px;
-  right: 14px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  background: rgba(10, 10, 20, 0.78);
-  color: #fff;
-  border: 1.5px solid rgba(224, 26, 56, 0.55);
-  border-radius: 30px;
-  padding: 8px 16px;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: rgba(224, 26, 56, 0.1);
+  color: #e01a38;
+  border: 1px solid rgba(224, 26, 56, 0.3);
+  border-radius: 10px;
+  padding: 7px 0;
+  margin-top: 0.9em;
   font-family: "Poppins", sans-serif;
-  font-size: 0.78em;
+  font-size: 0.75em;
   font-weight: 600;
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition: background 0.25s, border-color 0.25s, transform 0.2s, box-shadow 0.25s;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.2s, box-shadow 0.25s;
   letter-spacing: 0.5px;
 }
 
 .download-btn:hover {
   background: #e01a38;
+  color: #fff;
   border-color: #e01a38;
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 8px 28px rgba(224, 26, 56, 0.55);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(224, 26, 56, 0.45);
 }
 
 .download-btn:active {
@@ -349,7 +354,7 @@ body {
 }
 
 .download-btn:disabled {
-  opacity: 0.75;
+  opacity: 0.65;
   cursor: default;
   transform: none;
 }
@@ -361,28 +366,36 @@ body {
 
 /* Card body */
 .card-body {
-  padding: 1.2em 1.4em 1.4em 1.4em;
+  flex: 1;
+  min-width: 0;
+  padding: 1em 1.1em 1em 1.1em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .character-name {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 2em;
-  letter-spacing: 3px;
+  font-size: 1.55em;
+  letter-spacing: 2.5px;
   color: #ffffff;
   line-height: 1;
-  margin-bottom: 0.15em;
+  margin-bottom: 0.18em;
   text-shadow: 0 0 20px rgba(224,26,56,0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .alignment-badge {
   display: inline-block;
-  font-size: 0.7em;
+  font-size: 0.65em;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  padding: 3px 12px;
+  padding: 2px 10px;
   border-radius: 20px;
-  margin-bottom: 1em;
+  margin-bottom: 0.6em;
 }
 
 .alignment-good    { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
@@ -392,7 +405,7 @@ body {
 .divider {
   height: 1px;
   background: linear-gradient(to right, #e01a38, transparent);
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
   opacity: 0.4;
 }
 
@@ -402,9 +415,9 @@ body {
 .info-row {
   display: flex;
   align-items: flex-start;
-  padding: 0.55em 0;
+  padding: 0.35em 0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
-  font-size: 0.85em;
+  font-size: 0.78em;
   animation: fadeInRow 0.4s ease both;
 }
 
@@ -418,14 +431,14 @@ body {
 .info-row:nth-child(6) { animation-delay: 0.30s; }
 
 @keyframes fadeInRow {
-  from { opacity: 0; transform: translateX(-12px); }
+  from { opacity: 0; transform: translateX(-10px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
 .info-label {
   font-weight: 600;
   color: #e01a38;
-  min-width: 46%;
+  min-width: 44%;
   font-size: 0.9em;
   letter-spacing: 0.3px;
 }
@@ -433,28 +446,41 @@ body {
 .info-value {
   color: #ccc;
   flex: 1;
+  word-break: break-word;
 }
 
 /* ── Loading shimmer ── */
 .loading-card {
+  display: flex;
+  flex-direction: row;
   background: #13131f;
   border-radius: 20px;
   overflow: hidden;
   border: 1px solid #2a2a4a;
   animation: cardReveal 0.3s ease both;
+  min-height: 180px;
 }
 
 .shimmer-img {
-  height: 220px;
+  width: 138px;
+  flex-shrink: 0;
   background: linear-gradient(90deg, #1a1a2e 25%, #22223a 50%, #1a1a2e 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
 
+.shimmer-lines {
+  flex: 1;
+  padding: 1em 1.1em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.6em;
+}
+
 .shimmer-line {
-  height: 16px;
+  height: 13px;
   border-radius: 8px;
-  margin: 1em 1.4em 0.6em;
   background: linear-gradient(90deg, #1a1a2e 25%, #22223a 50%, #1a1a2e 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;

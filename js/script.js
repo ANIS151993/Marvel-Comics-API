@@ -163,10 +163,14 @@ function showLoading() {
   showContainer.innerHTML = `
     <div class="loading-card">
       <div class="shimmer-img"></div>
-      <div class="shimmer-line" style="width:55%"></div>
-      <div class="shimmer-line" style="width:35%"></div>
-      <div class="shimmer-line" style="width:70%"></div>
-      <div class="shimmer-line" style="width:60%;margin-bottom:1.5em"></div>
+      <div class="shimmer-lines">
+        <div class="shimmer-line" style="width:70%"></div>
+        <div class="shimmer-line" style="width:35%"></div>
+        <div class="shimmer-line" style="width:90%"></div>
+        <div class="shimmer-line" style="width:80%"></div>
+        <div class="shimmer-line" style="width:60%"></div>
+        <div class="shimmer-line" style="width:75%"></div>
+      </div>
     </div>`;
 }
 
@@ -242,52 +246,54 @@ function showCard(character) {
   showContainer.innerHTML = `
     <div class="card-container">
 
-      <!-- Full Image -->
+      <!-- Image column -->
       <div class="card-image-wrapper">
         <img id="char-img"
              src="${character.image}"
              alt="${character.name}"
              onerror="setInlineFallback(this, '${safeName}')" />
         <div class="card-image-id">ID: ${character.id}</div>
+      </div>
 
-        <!-- Download button over image -->
+      <!-- Info column -->
+      <div class="card-body">
+        <div>
+          <div class="character-name" title="${character.name}">${character.name}</div>
+          <span class="alignment-badge ${alignClass}">${character.alignment || 'unknown'}</span>
+          <div class="divider"></div>
+          <div class="info-list">
+            <div class="info-row">
+              <span class="info-label">Full name</span>
+              <span class="info-value">${character.fullName || '—'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Publisher</span>
+              <span class="info-value">${character.publisher || '—'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Gender</span>
+              <span class="info-value">${character.gender || '—'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Race</span>
+              <span class="info-value">${character.race || '—'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">First appearance</span>
+              <span class="info-value">${character.firstAppearance || '—'}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Download button at bottom of card body -->
         <button class="download-btn" onclick="downloadImage('${character.image}', '${safeName}')" title="Download Image">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="7 10 12 15 17 10"/>
             <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          Download
+          Download Image
         </button>
-      </div>
-
-      <!-- Info -->
-      <div class="card-body">
-        <div class="character-name">${character.name}</div>
-        <span class="alignment-badge ${alignClass}">${character.alignment}</span>
-        <div class="divider"></div>
-        <div class="info-list">
-          <div class="info-row">
-            <span class="info-label">Full name</span>
-            <span class="info-value">${character.fullName}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Publisher</span>
-            <span class="info-value">${character.publisher}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Gender</span>
-            <span class="info-value">${character.gender}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Race</span>
-            <span class="info-value">${character.race}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">First appearance</span>
-            <span class="info-value">${character.firstAppearance}</span>
-          </div>
-        </div>
       </div>
     </div>`;
 }
