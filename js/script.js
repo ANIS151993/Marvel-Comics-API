@@ -246,46 +246,46 @@ function showCard(character) {
   showContainer.innerHTML = `
     <div class="card-container">
 
-      <!-- Image column -->
+      <!-- Image (full width, full picture) -->
       <div class="card-image-wrapper">
         <img id="char-img"
              src="${character.image}"
              alt="${character.name}"
              onerror="setInlineFallback(this, '${safeName}')" />
         <div class="card-image-id">ID: ${character.id}</div>
-      </div>
 
-      <!-- Info column -->
-      <div class="card-body">
-        <div>
+        <!-- Name + badge overlaid on gradient -->
+        <div class="card-name-overlay">
           <div class="character-name" title="${character.name}">${character.name}</div>
           <span class="alignment-badge ${alignClass}">${character.alignment || 'unknown'}</span>
-          <div class="divider"></div>
-          <div class="info-list">
-            <div class="info-row">
-              <span class="info-label">Full name</span>
-              <span class="info-value">${character.fullName || '—'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Publisher</span>
-              <span class="info-value">${character.publisher || '—'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Gender</span>
-              <span class="info-value">${character.gender || '—'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Race</span>
-              <span class="info-value">${character.race || '—'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">First appearance</span>
-              <span class="info-value">${character.firstAppearance || '—'}</span>
-            </div>
+        </div>
+      </div>
+
+      <!-- Info grid + download -->
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-cell">
+            <span class="info-label">Full name</span>
+            <span class="info-value">${character.fullName || '—'}</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">Gender</span>
+            <span class="info-value">${character.gender || '—'}</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">Publisher</span>
+            <span class="info-value">${character.publisher || '—'}</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">Race</span>
+            <span class="info-value">${character.race || '—'}</span>
+          </div>
+          <div class="info-cell full">
+            <span class="info-label">First appearance</span>
+            <span class="info-value">${character.firstAppearance || '—'}</span>
           </div>
         </div>
 
-        <!-- Download button at bottom of card body -->
         <button class="download-btn" onclick="downloadImage('${character.image}', '${safeName}')" title="Download Image">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
