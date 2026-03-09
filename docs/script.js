@@ -5,17 +5,17 @@ let listContainer = document.getElementById("autocomplete-list");
 
 let characters = [];
 let currentCharacter = null;
+let debounceTimer = null;
 
-// Load local JSON data and auto-show list
+const BROWSE_LIMIT = 80; // max items shown when browsing (no search term)
+
+// Load local JSON data
 fetch("marvel_characters.json")
   .then((response) => response.json())
   .then((data) => {
-    // Sort alphabetically
     characters = data.sort((a, b) => a.name.localeCompare(b.name));
     const random = characters[Math.floor(Math.random() * characters.length)];
     input.value = random.name;
-    // Auto-show full list on page load
-    buildDropdownItems(characters, "");
   });
 
 function displayWords(value) {
@@ -27,56 +27,60 @@ function removeElements() {
   listContainer.innerHTML = "";
 }
 
-// Build dropdown items
+// Build dropdown using DocumentFragment for fast batch insert
 function buildDropdownItems(list, searchTerm) {
   removeElements();
-  list.forEach((character) => {
-    let name = character.name;
-    let div = document.createElement("div");
-    div.classList.add("autocomplete-items");
-    div.setAttribute("onclick", `displayWords('${name.replace(/'/g, "\\'")}')`);
+  const fragment = document.createDocumentFragment();
+  let lastLetter = "";
+
+  const slice = searchTerm ? list : list.slice(0, BROWSE_LIMIT);
+
+  slice.forEach((character) => {
+    const name = character.name;
+    const letter = name[0].toUpperCase();
+
+    // Alphabet header (browse mode only)
+    if (!searchTerm && letter !== lastLetter) {
+      const header = document.createElement("div");
+      header.className = "alpha-header";
+      header.textContent = letter;
+      fragment.appendChild(header);
+      lastLetter = letter;
+    }
+
+    const div = document.createElement("div");
+    div.className = "autocomplete-items";
+    div.setAttribute("data-letter", letter);
+    div.addEventListener("click", () => displayWords(name));
 
     let word = name;
     if (searchTerm) {
       const idx = name.toLowerCase().indexOf(searchTerm.toLowerCase());
       if (idx !== -1) {
-        word = name.substr(0, idx) +
-               "<b>" + name.substr(idx, searchTerm.length) + "</b>" +
-               name.substr(idx + searchTerm.length);
+        word = name.substring(0, idx) +
+               "<b>" + name.substring(idx, idx + searchTerm.length) + "</b>" +
+               name.substring(idx + searchTerm.length);
       }
     }
 
-    // Show first letter as section label if alphabetical listing
-    const letter = name[0].toUpperCase();
-    div.setAttribute("data-letter", letter);
     div.innerHTML = `<p class="item">${word}</p>`;
-    listContainer.appendChild(div);
+    fragment.appendChild(div);
   });
 
-  // Add letter group headers for full alphabetical list
-  if (!searchTerm) {
-    addAlphabetHeaders();
+  // Footer hint when browsing full list
+  if (!searchTerm && list.length > BROWSE_LIMIT) {
+    const footer = document.createElement("div");
+    footer.className = "dropdown-footer";
+    footer.textContent = `Type to search all ${list.length} characters`;
+    fragment.appendChild(footer);
   }
+
+  listContainer.appendChild(fragment);
 }
 
-function addAlphabetHeaders() {
-  const items = listContainer.querySelectorAll(".autocomplete-items");
-  let lastLetter = "";
-  items.forEach((item) => {
-    const letter = item.getAttribute("data-letter");
-    if (letter !== lastLetter) {
-      const header = document.createElement("div");
-      header.classList.add("alpha-header");
-      header.textContent = letter;
-      listContainer.insertBefore(header, item);
-      lastLetter = letter;
-    }
-  });
-}
-
-// Show ALL characters alphabetically on focus / click
+// Show browse list on focus / click
 input.addEventListener("focus", () => {
-  if (input.value.trim().length === 0 || characters.some(c => c.name.toLowerCase() === input.value.toLowerCase())) {
+  if (listContainer.innerHTML === "") {
     buildDropdownItems(characters, "");
   }
 });
@@ -87,25 +91,24 @@ input.addEventListener("click", () => {
   }
 });
 
-// Filter while typing
+// Debounced filter while typing
 input.addEventListener("keyup", (e) => {
   if (e.key === "Enter") return;
-  const searchTerm = input.value.trim();
-
-  if (searchTerm.length === 0) {
-    buildDropdownItems(characters, "");
-    return;
-  }
-
-  const matches = characters.filter((c) =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (matches.length > 0) {
-    buildDropdownItems(matches, searchTerm);
-  } else {
-    removeElements();
-  }
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    const searchTerm = input.value.trim();
+    if (searchTerm.length === 0) {
+      buildDropdownItems(characters, "");
+      return;
+    }
+    const lower = searchTerm.toLowerCase();
+    const matches = characters.filter((c) => c.name.toLowerCase().includes(lower));
+    if (matches.length > 0) {
+      buildDropdownItems(matches, searchTerm);
+    } else {
+      removeElements();
+    }
+  }, 120);
 });
 
 // Close dropdown on outside click
@@ -159,14 +162,87 @@ function setInlineFallback(imgEl, name) {
   imgEl.src = buildInlineFallbackSvg(name);
 }
 
+// ── Online image search (Wikipedia API) ──────────────────
+
+const IMG_CACHE_PREFIX = "marvel_img_";
+
+async function fetchImageOnline(name) {
+  const cacheKey = IMG_CACHE_PREFIX + name.toLowerCase();
+
+  // Return cached result (even if it's "" meaning not found)
+  const cached = localStorage.getItem(cacheKey);
+  if (cached !== null) return cached;
+
+  // Try search queries: exact name first, then "Marvel Comics {name}"
+  const queries = [
+    `${name} (comics)`,
+    `${name} Marvel Comics`,
+    name,
+  ];
+
+  for (const q of queries) {
+    try {
+      const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q)}&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=500&format=json&origin=*`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const pages = data?.query?.pages;
+      if (pages) {
+        const page = Object.values(pages)[0];
+        const thumb = page?.thumbnail?.source;
+        if (thumb) {
+          localStorage.setItem(cacheKey, thumb);
+          return thumb;
+        }
+      }
+    } catch (_) { /* network error, try next query */ }
+  }
+
+  // Not found — cache empty string to avoid re-fetching
+  localStorage.setItem(cacheKey, "");
+  return "";
+}
+
+// Called when character has no image — shows spinner then fetches online
+async function loadImageForCard(character) {
+  const wrapper = document.querySelector(".card-image-wrapper");
+  const imgEl   = document.getElementById("char-img");
+  if (!wrapper || !imgEl) return;
+
+  // Show spinner while searching
+  imgEl.style.opacity = "0.15";
+  const spinner = document.createElement("div");
+  spinner.className = "img-searching";
+  spinner.innerHTML = `<div class="img-spinner"></div><p>Searching image…</p>`;
+  wrapper.appendChild(spinner);
+
+  const found = await fetchImageOnline(character.name);
+
+  // Remove spinner
+  spinner.remove();
+  imgEl.style.opacity = "";
+
+  if (found) {
+    imgEl.onerror = () => setInlineFallback(imgEl, character.name);
+    imgEl.src = found;
+    // Persist to in-memory character so re-opens are instant
+    character.image = found;
+  } else {
+    setInlineFallback(imgEl, character.name);
+  }
+}
+
 function showLoading() {
   showContainer.innerHTML = `
     <div class="loading-card">
       <div class="shimmer-img"></div>
-      <div class="shimmer-line" style="width:55%"></div>
-      <div class="shimmer-line" style="width:35%"></div>
-      <div class="shimmer-line" style="width:70%"></div>
-      <div class="shimmer-line" style="width:60%;margin-bottom:1.5em"></div>
+      <div class="shimmer-lines">
+        <div class="shimmer-line" style="width:70%"></div>
+        <div class="shimmer-line" style="width:35%"></div>
+        <div class="shimmer-line" style="width:90%"></div>
+        <div class="shimmer-line" style="width:80%"></div>
+        <div class="shimmer-line" style="width:60%"></div>
+        <div class="shimmer-line" style="width:75%"></div>
+      </div>
     </div>`;
 }
 
@@ -242,54 +318,61 @@ function showCard(character) {
   showContainer.innerHTML = `
     <div class="card-container">
 
-      <!-- Full Image -->
+      <!-- Image (full width, full picture) -->
       <div class="card-image-wrapper">
         <img id="char-img"
-             src="${character.image}"
+             src="${character.image || buildInlineFallbackSvg(character.name)}"
              alt="${character.name}"
              onerror="setInlineFallback(this, '${safeName}')" />
         <div class="card-image-id">ID: ${character.id}</div>
 
-        <!-- Download button over image -->
-        <button class="download-btn" onclick="downloadImage('${character.image}', '${safeName}')" title="Download Image">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Name + badge overlaid on gradient -->
+        <div class="card-name-overlay">
+          <div class="character-name" title="${character.name}">${character.name}</div>
+          <span class="alignment-badge ${alignClass}">${character.alignment || 'unknown'}</span>
+        </div>
+      </div>
+
+      <!-- Info grid + download -->
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-cell">
+            <span class="info-label">Full name</span>
+            <span class="info-value">${character.fullName || '—'}</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">Gender</span>
+            <span class="info-value">${character.gender || '—'}</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">Publisher</span>
+            <span class="info-value">${character.publisher || '—'}</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">Race</span>
+            <span class="info-value">${character.race || '—'}</span>
+          </div>
+          <div class="info-cell full">
+            <span class="info-label">First appearance</span>
+            <span class="info-value">${character.firstAppearance || '—'}</span>
+          </div>
+        </div>
+
+        <button class="download-btn" onclick="downloadImage(document.getElementById('char-img').src, '${safeName}')" title="Download Image">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="7 10 12 15 17 10"/>
             <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          Download
+          Download Image
         </button>
       </div>
-
-      <!-- Info -->
-      <div class="card-body">
-        <div class="character-name">${character.name}</div>
-        <span class="alignment-badge ${alignClass}">${character.alignment}</span>
-        <div class="divider"></div>
-        <div class="info-list">
-          <div class="info-row">
-            <span class="info-label">Full name</span>
-            <span class="info-value">${character.fullName}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Publisher</span>
-            <span class="info-value">${character.publisher}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Gender</span>
-            <span class="info-value">${character.gender}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Race</span>
-            <span class="info-value">${character.race}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">First appearance</span>
-            <span class="info-value">${character.firstAppearance}</span>
-          </div>
-        </div>
-      </div>
     </div>`;
+
+  // If no image stored, search online
+  if (!character.image) {
+    loadImageForCard(character);
+  }
 }
 
 // ── Submit ────────────────────────────────────────────────
