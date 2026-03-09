@@ -273,7 +273,7 @@ body {
 
 /* Image section */
 .card-image-wrapper {
-  width: 138px;
+  width: 175px;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
@@ -462,7 +462,7 @@ body {
 }
 
 .shimmer-img {
-  width: 138px;
+  width: 175px;
   flex-shrink: 0;
   background: linear-gradient(90deg, #1a1a2e 25%, #22223a 50%, #1a1a2e 75%);
   background-size: 200% 100%;
