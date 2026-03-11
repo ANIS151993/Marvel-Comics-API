@@ -11,7 +11,6 @@ const outputFiles = [
   "docs/marvel_characters.json",
   "marvel-json/marvel_characters.json",
   "marvel-json/public/marvel_characters.json",
-  "mongodb/marvel_characters.json",
 ];
 const reportFile = "state/marvel-pull-report.json";
 

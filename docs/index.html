@@ -3,34 +3,122 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Marvel Comics API</title>
-    <!-- Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Animated background particles -->
     <div class="bg-particles">
       <span></span><span></span><span></span><span></span>
       <span></span><span></span><span></span><span></span>
     </div>
 
-    <div class="container">
-      <!-- Header -->
+    <section class="auth-shell" id="auth-shell" aria-labelledby="auth-title">
+      <div class="auth-card">
+        <div class="marvel-badge">MARVEL</div>
+        <p class="auth-eyebrow">Protected Access</p>
+        <h1 class="auth-title" id="auth-title">Sign in to enter the app</h1>
+        <p class="auth-subtitle">
+          Create an account with email and password, then Firebase will keep the
+          Marvel explorer locked until the user is authenticated.
+        </p>
+
+        <div class="auth-mode-toggle" role="tablist" aria-label="Authentication mode">
+          <button class="auth-mode-button is-active" data-auth-mode="signin" type="button">
+            Sign In
+          </button>
+          <button class="auth-mode-button" data-auth-mode="signup" type="button">
+            Create Account
+          </button>
+        </div>
+
+        <form class="auth-form" id="auth-form">
+          <label class="auth-label" for="auth-email">Email address</label>
+          <input
+            class="auth-input"
+            id="auth-email"
+            type="email"
+            autocomplete="email"
+            placeholder="name@example.com"
+            required
+          />
+
+          <label class="auth-label" for="auth-password">Password</label>
+          <input
+            class="auth-input"
+            id="auth-password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="At least 6 characters"
+            minlength="6"
+            required
+          />
+
+          <div class="auth-field hidden" id="confirm-password-field">
+            <label class="auth-label" for="auth-confirm-password">Confirm password</label>
+            <input
+              class="auth-input"
+              id="auth-confirm-password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Repeat your password"
+              minlength="6"
+            />
+          </div>
+
+          <button class="auth-submit-button" id="auth-submit-button" type="submit">
+            Sign In
+          </button>
+        </form>
+
+        <p class="auth-feedback muted" id="auth-feedback" role="status" aria-live="polite">
+          Checking your authentication session...
+        </p>
+
+        <div class="firebase-setup-note hidden" id="firebase-setup-note">
+          <h2>Firebase setup still required</h2>
+          <p>
+            Open <code>docs/firebase-config.js</code> and paste the Firebase web
+            app config from your Firebase console.
+          </p>
+          <ol>
+            <li>Create a Firebase project.</li>
+            <li>Add a Web app inside that project.</li>
+            <li>Enable Email/Password under Authentication.</li>
+            <li>Create a Cloud Firestore database.</li>
+            <li>Paste the config values into the deployable config file.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <div class="container hidden" id="app-shell">
+      <div class="session-bar">
+        <p class="session-copy">
+          Signed in as
+          <span id="user-email">authenticated user</span>
+        </p>
+        <button class="session-button" id="logout-button" type="button">Log Out</button>
+      </div>
+
       <div class="header">
         <div class="marvel-badge">MARVEL</div>
         <h1 class="app-title">Comics API</h1>
         <p class="app-subtitle">Search the Marvel Universe</p>
       </div>
 
-      <!-- Search -->
       <div class="search-wrapper">
         <div class="input-container">
           <span class="search-icon">&#9906;</span>
-          <input type="text" class="input" value="Iron Man" id="input-box" placeholder="Search hero..." />
+          <input
+            type="text"
+            class="input"
+            value="Iron Man"
+            id="input-box"
+            placeholder="Search hero..."
+          />
           <button class="button" id="submit-button">
             <span class="btn-text">Search</span>
             <span class="btn-arrow">&#8594;</span>
@@ -39,10 +127,8 @@
         <div class="list" id="autocomplete-list"></div>
       </div>
 
-      <!-- Card output -->
       <div class="display-container" id="show-container"></div>
 
-      <!-- Copyright -->
       <footer class="copyright">
         <div class="copyright-divider"></div>
         <p class="copyright-name">Md Anisur Rahaman Chowdhury</p>
@@ -54,7 +140,6 @@
       </footer>
     </div>
 
-    <!-- Script -->
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
   </body>
 </html>

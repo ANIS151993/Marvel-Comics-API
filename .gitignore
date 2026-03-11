@@ -15,3 +15,6 @@ marvel-json/package-lock.json
 .claude/
 .tools/
 state/
+firebase-service-account*.json
+serviceAccountKey*.json
+*firebase-adminsdk*.json
